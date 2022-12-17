@@ -76,6 +76,7 @@ public abstract class BaseFragment {
     protected boolean inTransitionAnimation = false;
     protected boolean fragmentBeginToShow;
     private boolean removingFromStack;
+    private PreviewDelegate previewDelegate;
 
     public BaseFragment() {
         classGuid = ConnectionsManager.generateClassGuid();
@@ -151,6 +152,14 @@ public abstract class BaseFragment {
 
     public boolean getInPassivePreviewMode() {
         return parentLayout != null && parentLayout.isInPassivePreviewMode();
+    }
+
+    public boolean isActionBarCrossfadeEnabled() {
+        return actionBar != null;
+    }
+
+    public INavigationLayout.BackButtonState getBackButtonState() {
+        return actionBar != null ? actionBar.getBackButtonState() : null;
     }
 
     public void setInPreviewMode(boolean value) {
@@ -254,7 +263,7 @@ public abstract class BaseFragment {
         }
     }
 
-    protected ActionBar createActionBar(Context context) {
+    public ActionBar createActionBar(Context context) {
         ActionBar actionBar = new ActionBar(context, getResourceProvider());
         actionBar.setBackgroundColor(getThemedColor(Theme.key_actionBarDefault));
         actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_actionBarDefaultSelector), false);
@@ -282,7 +291,11 @@ public abstract class BaseFragment {
             parentDialog.dismiss();
             return;
         }
-        finishFragment(true);
+        if (inPreviewMode && previewDelegate != null) {
+            previewDelegate.finishFragment();
+        } else {
+            finishFragment(true);
+        }
     }
 
     public void finishFragment(boolean animated) {
@@ -503,6 +516,10 @@ public abstract class BaseFragment {
     }
 
     public void onSlideProgress(boolean isOpen, float progress) {
+
+    }
+
+    public void onSlideProgressFront(boolean isOpen, float progress) {
 
     }
 
@@ -830,4 +847,25 @@ public abstract class BaseFragment {
     public void drawOverlay(Canvas canvas, View parent) {
 
     }
+
+    public void setPreviewOpenedProgress(float progress) {
+
+    }
+
+    public void setPreviewReplaceProgress(float progress) {
+
+    }
+
+    public boolean closeLastFragment() {
+        return false;
+    }
+
+    public void setPreviewDelegate(PreviewDelegate previewDelegate) {
+        this.previewDelegate = previewDelegate;
+    }
+
+    public interface PreviewDelegate {
+        void finishFragment();
+    }
+
 }

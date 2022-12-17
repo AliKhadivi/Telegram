@@ -15,6 +15,7 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.telegram.SQLite.SQLiteException;
 import org.telegram.messenger.time.FastDateFormat;
 import org.telegram.messenger.video.MediaCodecVideoConvertor;
 import org.telegram.tgnet.TLObject;
@@ -36,6 +37,7 @@ public class FileLog {
     private File networkFile = null;
     private File tonlibFile = null;
     private boolean initied;
+    public static boolean databaseIsMalformed = false;
 
     private OutputStreamWriter tlStreamWriter = null;
     private File tlRequestsFile = null;
@@ -75,7 +77,7 @@ public class FileLog {
         String requestSimpleName = request.getClass().getSimpleName();
         checkGson();
 
-        if (excludeRequests.contains(requestSimpleName)) {
+        if (excludeRequests.contains(requestSimpleName) && error == null) {
             return;
         }
         try {
@@ -308,6 +310,9 @@ public class FileLog {
         }
         if (BuildVars.DEBUG_VERSION && needSent(e) && logToAppCenter) {
             AndroidUtilities.appCenterLog(e);
+        }
+        if (BuildVars.DEBUG_VERSION && e instanceof SQLiteException && e.getMessage() != null && e.getMessage().contains("disk image is malformed")) {
+            databaseIsMalformed = true;
         }
         ensureInitied();
         e.printStackTrace();
